@@ -28,9 +28,16 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 import { requestPostTypes } from 'state/post-types/actions';
 import { isRequestingTermsForQuery, getTerms } from 'state/terms/selectors';
 import CustomPostTypeFieldset from './custom-post-types-fieldset';
+import MediaSettings from './media-settings';
+import { fetchModuleList } from 'state/jetpack-settings/modules/actions';
+import { isModuleActive } from 'state/jetpack-settings/modules/selectors';
 
 const SiteSettingsFormWriting = React.createClass( {
 	mixins: [ dirtyLinkedState, formBase ],
+
+	componentWillMount: function() {
+		this.props.fetchModuleList( this.props.site.ID );
+	},
 
 	getSettingsFromSite: function( site ) {
 		let writingAttributes = [
@@ -224,6 +231,17 @@ const SiteSettingsFormWriting = React.createClass( {
 						</FormFieldset>
 					}
 				</Card>
+				{
+					this.props.site.jetpack && (
+						<MediaSettings
+							site={ this.props.site }
+							submittingForm={ this.state.submittingForm }
+							submitFormAndActivateCustomContentModule={ this.submitFormAndActivateCustomContentModule }
+							fetchingSettings={ this.state.fetchingSettings }
+							jetpackCarouselModuleActive={ this.props.jetpackCarouselModuleActive }
+							/>
+					)
+				}
 			</form>
 		);
 	}
@@ -237,13 +255,14 @@ export default connect(
 
 		return {
 			jetpackCustomTypesModuleActive: false !== isJetpackModuleActive( state, siteId, 'custom-content-types' ),
+			jetpackCarouselModuleActive: false !== isModuleActive( state, siteId, 'carousel' ),
 			jetpackVersionSupportsCustomTypes: false !== isJetpackMinimumVersion( state, siteId, '4.2.0' ),
 			categories,
 			isRequestingCategories,
 			siteId
 		};
 	},
-	{ requestPostTypes },
+	{ requestPostTypes, fetchModuleList },
 	null,
 	{ pure: false }
 )( protectForm( SiteSettingsFormWriting ) );
