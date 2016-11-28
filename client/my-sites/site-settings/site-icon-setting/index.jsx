@@ -4,7 +4,7 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { partial } from 'lodash';
+import { uniqueId, head, partial } from 'lodash';
 
 /**
  * Internal dependencies
@@ -24,6 +24,10 @@ import { isEnabled } from 'config';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import InfoPopover from 'components/info-popover';
+import MediaActions from 'lib/media/actions';
+import MediaStore from 'lib/media/store';
+import MediaLibrarySelectedStore from 'lib/media/library-selected-store';
+import { isItemBeingUploaded } from 'lib/media/utils';
 import { addQueryArgs } from 'lib/url';
 
 class SiteIconSetting extends Component {
@@ -56,6 +60,45 @@ class SiteIconSetting extends Component {
 	setSiteIcon = ( error, blob ) => {
 		this.hideModal();
 		this.props.resetAllImageEditorState();
+
+		if ( error || ! blob ) {
+			return;
+		}
+
+		const { siteId } = this.props;
+		const selectedItem = head( MediaLibrarySelectedStore.getAll( siteId ) );
+		if ( ! selectedItem ) {
+			return;
+		}
+
+		const transientMediaId = uniqueId( 'site-icon' );
+
+		MediaActions.add( siteId, {
+			ID: transientMediaId,
+			fileName: `cropped-${ selectedItem.file }`,
+			fileContents: blob
+		} );
+
+		MediaStore.on( 'change', this.checkUploadComplete );
+
+		this.setState( { transientMediaId } );
+	};
+
+	checkUploadComplete = () => {
+		const { siteId } = this.props;
+		const { transientMediaId } = this.state;
+		const transientMedia = MediaStore.get( siteId, transientMediaId );
+		if ( isItemBeingUploaded( transientMedia ) ) {
+			return;
+		}
+
+		alert( transientMedia.ID );
+
+		this.setState( {
+			transientMediaId: null
+		} );
+
+		MediaStore.off( 'change', this.checkUploadComplete );
 	};
 
 	preloadModal() {
