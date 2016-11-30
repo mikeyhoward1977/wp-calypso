@@ -135,4 +135,14 @@ module.exports = {
 		defaultVariation: 'original',
 		allowAnyLocale: true,
 	},
+
+	siteTitleTour: {
+		datestamp: '20161130',
+		variations: {
+			disabled: 50,
+			enabled: 50,
+		},
+		defaultVariation: 'disabled',
+		allowExistingUsers: true,
+	},
 };
