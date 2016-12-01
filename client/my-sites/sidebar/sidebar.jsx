@@ -30,6 +30,7 @@ import { getCurrentUser } from 'state/current-user/selectors';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import { getThemeCustomizeUrl as getCustomizeUrl } from 'state/themes/selectors';
 import { setNextLayoutFocus, setLayoutFocus } from 'state/ui/layout-focus/actions';
+import { isJetpackSite } from 'state/sites/selectors';
 
 /**
  * Module variables
@@ -44,6 +45,7 @@ export class MySitesSidebar extends Component {
 		path: PropTypes.string,
 		sites: PropTypes.object,
 		currentUser: PropTypes.object,
+		isJetpack: PropTypes.bool,
 	};
 
 	componentDidMount() {
@@ -507,6 +509,11 @@ export class MySitesSidebar extends Component {
 			return null;
 		}
 
+		// Ignore Jetpack sites as they've opted into this interface.
+		if ( this.props.isJetpack ) {
+			return null;
+		}
+
 		if ( ! this.useWPAdminFlows() ) {
 			return null;
 		}
@@ -782,7 +789,8 @@ function mapStateToProps( state ) {
 	const selectedSiteId = getSelectedSiteId( state );
 	return {
 		currentUser: getCurrentUser( state ),
-		customizeUrl: getCustomizeUrl( state, null, selectedSiteId )
+		customizeUrl: getCustomizeUrl( state, null, selectedSiteId ),
+		isJetpack: isJetpackSite( state, selectedSiteId )
 	};
 }
 
