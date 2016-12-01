@@ -3,7 +3,6 @@
  */
 import classNames from 'classnames';
 import debugFactory from 'debug';
-import { has, includes } from 'lodash';
 import { localize } from 'i18n-calypso';
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
@@ -502,23 +501,14 @@ export class MySitesSidebar extends Component {
 	}
 
 	wpAdmin() {
-		var site = this.getSelectedSite(),
-			currentUser = this.props.currentUser;
+		var site = this.getSelectedSite();
 
 		if ( ! site.options ) {
 			return null;
 		}
 
-		// only skip wpadmin for non-vip
-		if ( ! site.is_vip ) {
-			// safety check for nested attribute
-			if ( ! has( currentUser, 'meta.data.flags.active_flags' ) ) {
-				return null;
-			}
-
-			if ( ! includes( currentUser.meta.data.flags.active_flags, 'wpcom-use-wpadmin-flows' ) ) {
-				return null;
-			}
+		if ( ! this.useWPAdminFlows() ) {
+			return null;
 		}
 
 		return (
@@ -530,6 +520,26 @@ export class MySitesSidebar extends Component {
 				</a>
 			</li>
 		);
+	}
+
+	// Check for cases where WP Admin links should appear, where we need support for legacy reasons (VIP, older users, testing).
+	useWPAdminFlows() {
+		var site = this.getSelectedSite(),
+			currentUser = this.props.currentUser,
+			userRegisteredDate = new Date( currentUser.date ),
+			cutOffDate = new Date( '2015-09-07' );
+
+		// VIP sites should always show a WP Admin link regardless of the current user.
+		if ( site.is_vip ) {
+			return true;
+		}
+
+		// User registered before the cut-off date of September 7, 2015 and we want to support them as legacy users.
+		if ( userRegisteredDate < cutOffDate ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	trackWpadminClick = () => {
