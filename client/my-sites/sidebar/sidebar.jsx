@@ -524,10 +524,10 @@ export class MySitesSidebar extends Component {
 
 	// Check for cases where WP Admin links should appear, where we need support for legacy reasons (VIP, older users, testing).
 	useWPAdminFlows() {
-		var site = this.getSelectedSite(),
-			currentUser = this.props.currentUser,
-			userRegisteredDate = new Date( currentUser.date ),
-			cutOffDate = new Date( '2015-09-07' );
+		const site = this.getSelectedSite();
+		const currentUser = this.props.currentUser;
+		const userRegisteredDate = new Date( currentUser.date );
+		const cutOffDate = new Date( '2015-09-07' );
 
 		// VIP sites should always show a WP Admin link regardless of the current user.
 		if ( site.is_vip ) {
