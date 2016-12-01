@@ -79,26 +79,17 @@ class SiteIconSetting extends Component {
 			fileContents: blob
 		} );
 
-		MediaStore.on( 'change', this.checkUploadComplete );
+		const checkUploadComplete = () => {
+			const transientMedia = MediaStore.get( siteId, transientMediaId );
+			if ( isItemBeingUploaded( transientMedia ) ) {
+				return;
+			}
 
-		this.setState( { transientMediaId } );
-	};
+			MediaStore.off( 'change', checkUploadComplete );
+			alert( transientMedia.ID );
+		};
 
-	checkUploadComplete = () => {
-		const { siteId } = this.props;
-		const { transientMediaId } = this.state;
-		const transientMedia = MediaStore.get( siteId, transientMediaId );
-		if ( isItemBeingUploaded( transientMedia ) ) {
-			return;
-		}
-
-		alert( transientMedia.ID );
-
-		this.setState( {
-			transientMediaId: null
-		} );
-
-		MediaStore.off( 'change', this.checkUploadComplete );
+		MediaStore.on( 'change', checkUploadComplete );
 	};
 
 	preloadModal() {
